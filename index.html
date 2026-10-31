@@ -21,7 +21,7 @@ h1,h2{font-family:"Reem Kufi","Tajawal",serif;margin:0}
 .btn.alt{background:none;color:var(--gold2)}
 .btn:focus-visible,input:focus-visible,.pl:focus-visible{outline:3px solid var(--gold2);outline-offset:2px}
 #j{text-align:center;padding-top:10vh}
-.brand{font-size:96px;line-height:1.1;background:linear-gradient(180deg,var(--gold2),var(--gold) 60%,#8a6420);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand{font-size:96px;line-height:1.4;padding-bottom:10px;background:linear-gradient(180deg,var(--gold2),var(--gold) 60%,#8a6420);-webkit-background-clip:text;background-clip:text;color:transparent}
 #j p{color:var(--mute);margin:10px auto 20px;max-width:380px}
 input{font:500 17px "Tajawal",sans-serif;padding:12px 14px;border-radius:6px;border:2px solid var(--gold);background:#120c0a;color:var(--ink);width:100%;max-width:280px;margin-bottom:12px}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px}
@@ -66,6 +66,15 @@ select{font:500 15px "Tajawal",sans-serif;padding:8px;border-radius:6px;backgrou
 .vb.on{border-color:#6be38a;background:#10301c}
 .vb{font-size:20px;background:none;border:1px solid #3a2c22;border-radius:99px;color:var(--ink);width:38px;height:38px;cursor:pointer}
 #toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#000c;border:1px solid var(--gold);color:var(--ink);padding:10px 16px;border-radius:10px;max-width:90%;text-align:center;z-index:9;font-size:15px}
+body.home{background:linear-gradient(rgba(11,16,32,.8),rgba(10,7,6,.96)),url(/img/bgnight.jpg) center/cover fixed}
+.logo{display:block;max-width:300px;width:80%;margin:0 auto 14px;border-radius:14px;border:2px solid var(--gold)}
+.pav{padding:0;cursor:pointer;background-size:cover;background-position:center top;color:var(--gold2)}
+.chk{display:flex;align-items:center;gap:4px;color:var(--mute);font-size:14px}.chk input{width:auto!important;margin:0!important}
+.avs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.avb{aspect-ratio:1;border-radius:50%;border:2px solid var(--gold);background-size:cover;background-position:center top;cursor:pointer}
+#mb{max-height:58vh;overflow-y:auto}
+.th{width:46px;height:46px;border-radius:8px;object-fit:cover;object-position:top;flex:none}
+.rl li{justify-content:flex-start!important;text-align:right;gap:10px!important}
 [hidden]{display:none!important}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:grid;place-items:center;padding:20px;z-index:5}
 .card{background:var(--card);border:2px solid var(--gold);border-radius:12px;max-width:340px;width:100%;overflow:hidden;text-align:center}
@@ -79,11 +88,12 @@ select{font:500 15px "Tajawal",sans-serif;padding:8px;border-radius:6px;backgrou
 <body>
 <div class="w">
  <section id="j">
-  <h1 class="brand">مافيا</h1>
+  <div id="invb" class="box" hidden><b>📩 دعوة للغرفة <span id="invc"></span></b><p class="hint">اكتب اسمك أو سجّل دخول، واضغط ادخل.</p></div>
+  <img class="logo" src="/img/logo.jpg" alt="مافيا" onerror="this.hidden=true;document.getElementById('brand').hidden=false"><h1 class="brand" id="brand" hidden>مافيا</h1>
   <div id="acct" class="pcard" hidden>
-   <div class="pav" id="pav"></div>
+   <button class="pav" id="pav" type="button" aria-label="غيّر الأفاتار"></button>
    <div class="pinfo"><b id="pn"></b><small id="ps"></small><div class="xp"><i id="xb"></i></div></div>
-   <div class="pbtns"><button class="btn alt sm" id="shopb" type="button">المتجر</button><button class="btn alt sm" id="topb" type="button">الترتيب</button><button class="btn alt sm" id="out" type="button">خروج</button></div>
+   <div class="pbtns"><button class="btn sm" id="dlb" type="button" hidden>🎁 مكافأة اليوم</button><button class="btn alt sm" id="shopb" type="button">المتجر</button><button class="btn alt sm" id="missb" type="button">المهام</button><button class="btn alt sm" id="topb" type="button">الترتيب</button><button class="btn alt sm" id="out" type="button">خروج</button></div>
   </div>
   <div id="auth" class="box">
    <div class="tabs"><button id="t-in" class="on" type="button">دخول</button><button id="t-up" type="button">حساب جديد</button><button id="t-gu" type="button">ضيف</button></div>
@@ -100,21 +110,25 @@ select{font:500 15px "Tajawal",sans-serif;padding:8px;border-radius:6px;backgrou
    <div id="er" role="alert"></div>
   </div>
   <div class="box">
-   <button class="btn" id="mk" type="button" style="width:100%">أنشئ غرفة</button>
-   <p class="hint" style="margin:14px 0 8px">أو ادخل بكود صاحبك</p>
+   <button class="btn" id="qk" type="button" style="width:100%">⚡ العب سريع</button>
+   <div class="row2" style="margin-top:12px"><button class="btn alt" id="mk" type="button">أنشئ غرفة</button><label class="chk"><input type="checkbox" id="pub"> عامة</label></div>
+   <p class="hint" style="margin:10px 0 8px">أو ادخل بكود صاحبك</p>
    <input id="code" maxlength="4" placeholder="كود الغرفة" aria-label="كود الغرفة" style="text-transform:uppercase">
    <button class="btn alt" id="jn" type="button" style="width:100%">ادخل الغرفة</button>
+   <button class="btn alt sm" id="rms" type="button" style="width:100%;margin-top:10px">الغرف العامة</button>
   </div>
+  <div class="row2"><button class="btn alt sm" id="how" type="button">كيف تلعب</button></div>
   <p class="hint" style="text-align:center"><a href="/privacy" style="color:var(--gold2)">الخصوصية والشروط</a></p>
  </section>
  <section id="g" hidden>
-  <div class="top"><div id="ph"></div><div id="tm"></div><div id="me"></div><button class="vb" id="vb" type="button" aria-label="الراوي">🔊</button><button class="vb" id="mic" type="button" aria-label="المايك">🎤</button></div>
+  <div class="top"><div id="ph"></div><div id="tm"></div><div id="me"></div><button class="vb" id="vb" type="button" aria-label="الراوي">🔊</button><button class="vb" id="bvb" type="button" aria-label="أصوات البوتات">🗣</button><button class="vb" id="mic" type="button" aria-label="المايك">🎤</button></div>
   <div id="msg"></div><div id="nt" role="status"></div>
   <div id="grid"></div>
   <div id="chat" aria-live="polite"></div>
   <div class="row"><input id="txt" maxlength="120" placeholder="اكتب رأيك..." aria-label="رسالة"><button class="btn" id="snd" type="button">إرسال</button></div>
   <div id="mc" hidden><b>شات المافيا (سري)</b><div id="mlog"></div><div class="row"><input id="mtxt" maxlength="120" placeholder="للمافيا فقط..." aria-label="شات المافيا"><button class="btn" id="msnd" type="button">أرسل</button></div></div>
   <div class="row" id="rpr" hidden><select id="rps" aria-label="لاعب للإبلاغ"></select><button class="btn alt sm" id="rp" type="button">بلّغ</button></div>
+  <div class="row2" id="gbar" style="margin-top:10px"><button class="btn alt sm" id="inv" type="button">📲 دعوة</button><button class="btn alt sm" id="lv" type="button">🚪 خروج من الغرفة</button></div>
   <button class="btn" id="st" type="button" hidden></button>
  </section>
 </div>
@@ -131,8 +145,10 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;
 function me(){return st.players.find(function(p){return p.id===st.you})}
 function modal(img,t,b,btn){$("mi").hidden=!img;if(img)$("mi").src=img;$("mt").textContent=t;$("mb").innerHTML=b;$("mbtn").textContent=btn;$("modal").hidden=false}
 $("mbtn").onclick=function(){$("modal").hidden=true};
-function join(room){var nm=$("nick").value.trim();if(!prof&&!nm){tab("gu");return err("اكتب اسمك كضيف، أو سجّل دخول.")}S.emit("join",{name:nm,room:room,cid:CID})}
-$("mk").onclick=function(){join()};
+function go(ev,ex){var n=$("nick").value.trim();if(!prof&&!n){tab("gu");return err("اكتب اسمك كضيف، أو سجّل دخول.")}var d={name:n,cid:CID};for(var k in ex)d[k]=ex[k];S.emit(ev,d)}
+function join(room,pub){go("join",{room:room,pub:!!pub})}
+$("mk").onclick=function(){join(null,$("pub").checked)};
+$("qk").onclick=function(){go("quick")};
 $("jn").onclick=function(){var c=$("code").value.trim();if(c)join(c)};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
 var CID=ls("cid");if(!CID){CID=Math.random().toString(36).slice(2)+Date.now().toString(36);ls("cid",CID)}
@@ -150,20 +166,26 @@ $("go1").onclick=function(){var n=$("u").value.trim(),p=$("pw").value;
  $("er").textContent="";$("go1").disabled=true;S.emit("auth",{mode:TAB==="up"?"register":"login",name:n,pass:p})};
 $("pw").onkeydown=function(e){if(e.key==="Enter")$("go1").onclick()};
 function showAcct(){$("auth").hidden=!!prof;$("acct").hidden=!prof;
- if(prof){$("pav").textContent=prof.name[0];$("pn").textContent=prof.name;$("ps").textContent="مستوى "+prof.lv+" · "+prof.coins+" عملة · "+prof.wins+" فوز من "+prof.games+" لعبة";$("xb").style.width=(prof.xp%100)+"%"}}
-var VOICE=ls("voice")!=="0",AR=null,spoken=-1,unlocked=false,warned=false;
-function pickVoice(){var v=window.speechSynthesis?speechSynthesis.getVoices():[];AR=v.find(function(x){return/^ar/i.test(x.lang)})||null}
+ if(prof){$("pav").textContent=prof.av?"":prof.name[0];$("pav").style.backgroundImage=prof.av?"url(/img/"+prof.av+".jpg)":"none";$("dlb").hidden=!(prof.dr&&prof.dr.can);$("pn").textContent=prof.name;$("ps").textContent="مستوى "+prof.lv+" · "+prof.coins+" عملة · "+prof.wins+" فوز من "+prof.games+" لعبة";$("xb").style.width=(prof.xp%100)+"%"}}
+var ARS=[],BV=ls("bvoice")!=="0",bq=0,VOICE=ls("voice")!=="0",AR=null,spoken=-1,unlocked=false,warned=false;
+function pickVoice(){var v=window.speechSynthesis?speechSynthesis.getVoices():[];ARS=v.filter(function(x){return/^ar/i.test(x.lang)});AR=ARS[0]||null}
 if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 function speak(t){if(!VOICE||!window.speechSynthesis)return;var u=new SpeechSynthesisUtterance(t);u.lang="ar-SA";if(AR)u.voice=AR;u.rate=.95;speechSynthesis.speak(u)}
 document.addEventListener("pointerdown",function(){if(unlocked||!window.speechSynthesis)return;unlocked=true;speechSynthesis.speak(new SpeechSynthesisUtterance(" "))},{once:true});
-function showVoice(){$("vb").textContent=VOICE?"🔊":"🔇"}showVoice();
+function showVoice(){$("vb").textContent=VOICE?"🔊":"🔇";$("bvb").className="vb"+(BV?" on":"")}showVoice();
+function hsh(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h}
+function speakBot(name,t){if(!BV||!window.speechSynthesis||bq>1)return;var h=hsh(name),u=new SpeechSynthesisUtterance(t);u.lang="ar-SA";
+ if(ARS.length)u.voice=ARS[h%ARS.length];u.pitch=.75+(h%7)*.09;u.rate=.88+((h>>3)%5)*.07;
+ u.onend=u.onerror=function(){bq=Math.max(0,bq-1)};bq++;speechSynthesis.speak(u)}
+$("bvb").onclick=function(){BV=!BV;ls("bvoice",BV?"1":"0");showVoice();if(!BV&&window.speechSynthesis){speechSynthesis.cancel();bq=0}else if(!AR)toast("ما لقيت صوت عربي بجهازك. فعّله من الإعدادات > إمكانية الوصول > المحتوى المنطوق > الأصوات.")};
 $("vb").onclick=function(){VOICE=!VOICE;ls("voice",VOICE?"1":"0");showVoice();if(!VOICE&&window.speechSynthesis)speechSynthesis.cancel();else if(!AR)toast("ما لقيت صوت عربي بجهازك. فعّله من الإعدادات > إمكانية الوصول > المحتوى المنطوق > الأصوات.")};
 function narrate(){if(st.n<spoken)spoken=st.n;if(spoken<0){spoken=st.n;return}
  var first=st.n-st.log.length;
- for(var i=Math.max(spoken,first);i<st.n;i++){var l=st.log[i-first];if(l&&!l.who&&!/دخل الغرفة|خرج|رجع للعبة/.test(l.t))speak(l.t)}
+ for(var i=Math.max(spoken,first);i<st.n;i++){var l=st.log[i-first];if(l&&!l.who&&!/دخل الغرفة|خرج|رجع للعبة/.test(l.t))speak(l.t);
+  else if(l&&l.who){var bp=st.players.find(function(p){return p.bot&&p.name===l.who});if(bp)speakBot(l.who,l.t)}}
  spoken=st.n}
 S.on("connect",function(){var t=ls("tk");if(t)S.emit("resume",t);if(!st)S.emit("rejoin",CID)});
-S.on("authed",function(a){ls("tk",a.token);prof=a.profile;$("go1").disabled=false;$("er").textContent="";showAcct();toast("أهلاً "+prof.name)});
+S.on("authed",function(a){ls("tk",a.token);prof=a.profile;$("go1").disabled=false;$("er").textContent="";showAcct();toast("أهلاً "+prof.name);if(INV&&!st){var c=INV;INV="";$("invb").hidden=true;join(c)}});
 S.on("authfail",function(){ls("tk",null)});
 S.on("profile",function(p){prof=p;showAcct()});
 $("out").onclick=function(){S.emit("logout",ls("tk"));ls("tk",null);prof=null;showAcct()};
@@ -172,11 +194,15 @@ $("topb").onclick=function(){S.emit("top")};
 S.on("shop",function(d){prof=d.profile;showAcct();
  modal(null,"المتجر","<p>عملاتك: "+prof.coins+" (الأغراض شكلية فقط، بدون أي أفضلية باللعب)</p><ul>"+Object.keys(d.items).map(function(id){var it=d.items[id],own=prof.items.indexOf(id)>-1,on=prof.eq[it.t]===id;
   return"<li><span style=\"color:"+it.v+"\">"+esc(it.n)+"</span>"+(own?"<button class=\"btn alt sm\" data-eq=\""+id+"\">"+(on?"مُفعّل ✓":"فعّل")+"</button>":"<button class=\"btn sm\" data-buy=\""+id+"\">"+it.c+" عملة</button>")+"</li>"}).join("")+"</ul>","إغلاق")});
-S.on("top",function(l){modal(null,"أفضل اللاعبين","<ul>"+(l.length?l.map(function(x,i){return"<li><span>"+(i+1)+". "+esc(x.name)+"</span><span>"+x.wins+" فوز · م"+x.lv+"</span></li>"}).join(""):"<li>لا يوجد لاعبين بعد</li>")+"</ul>","إغلاق")});
-$("mb").onclick=function(e){var b=e.target.closest("button");if(!b)return;if(b.dataset.buy)S.emit("buy",b.dataset.buy);if(b.dataset.eq)S.emit("equip",{id:b.dataset.eq})};
+S.on("top",function(d){var l=d.l;modal(null,"أفضل اللاعبين","<div class=\"row2\"><button class=\"btn "+(d.w?"alt":"")+" sm\" data-tp=\"all\">كل الوقت</button><button class=\"btn "+(d.w?"":"alt")+" sm\" data-tp=\"week\">هذا الأسبوع</button></div><ul>"+(l.length?l.map(function(x,i){return"<li><span>"+(i+1)+". "+esc(x.name)+"</span><span>"+x.wins+" فوز · م"+x.lv+"</span></li>"}).join(""):"<li>لا يوجد لاعبين بعد</li>")+"</ul>","إغلاق")});
+$("mb").onclick=function(e){var b=e.target.closest("button");if(!b)return;if(b.dataset.buy)S.emit("buy",b.dataset.buy);if(b.dataset.eq)S.emit("equip",{id:b.dataset.eq});
+ if(b.dataset.av){S.emit("avatar",b.dataset.av);$("modal").hidden=true}
+ if(b.dataset.tp)S.emit("top",b.dataset.tp);
+ if(b.dataset.cl){S.emit("claim",+b.dataset.cl);$("modal").hidden=true}
+ if(b.dataset.jr){$("modal").hidden=true;join(b.dataset.jr)}};
 S.on("err",err);
 S.on("note",function(t){$("nt").textContent=t;speak(t)});
-S.on("state",function(s){st=s;$("j").hidden=true;$("g").hidden=false;draw();narrate();syncPeers();if(VOICE&&!AR&&!warned){warned=true;toast("ما لقيت صوت عربي بجهازك، فالتعليق الصوتي ممكن ما يشتغل. الإعدادات > إمكانية الوصول > المحتوى المنطوق > الأصوات.")}});
+S.on("state",function(s){st=s;document.body.classList.remove("home");$("j").hidden=true;$("g").hidden=false;draw();narrate();syncPeers();if(VOICE&&!AR&&!warned){warned=true;toast("ما لقيت صوت عربي بجهازك، فالتعليق الصوتي ممكن ما يشتغل. الإعدادات > إمكانية الوصول > المحتوى المنطوق > الأصوات.")}});
 function targets(){
  var m=me(),al=st.players.filter(function(p){return p.alive});
  if(!m.alive)return[];
@@ -273,6 +299,23 @@ function applyVoice(){if(!st)return;var m=me(),ph=st.phase,talk=ph==="lobby"||ph
  Object.keys(auds).forEach(function(x){var p=st.players.find(function(q){return q.id===x});
   var play=ph==="lobby"||ph==="over"||(ph!=="night"&&(m.alive?!!(p&&p.alive):true));auds[x].muted=!play})}
 $("mic").onclick=micToggle;
+S.on("msg",toast);
+$("dlb").onclick=function(){S.emit("daily")};
+$("pav").onclick=function(){modal(null,"اختر أفاتار","<div class=\"avs\">"+Object.keys(RN).map(function(k){return"<button class=\"avb\" data-av=\""+k+"\" style=\"background-image:url(/img/"+k+".jpg)\" aria-label=\""+RN[k]+"\"></button>"}).join("")+"</div>","إغلاق")};
+$("missb").onclick=function(){var m=prof.dm;modal(null,"المهام اليومية","<ul><li><span>العب 3 ألعاب ("+Math.min(m.g,3)+"/3)</span>"+(m.c1?"<span>✓</span>":m.g>=3?"<button class=\"btn sm\" data-cl=\"1\">استلم 25</button>":"<span>🔒</span>")+"</li><li><span>اربح لعبة ("+Math.min(m.w,1)+"/1)</span>"+(m.c2?"<span>✓</span>":m.w>=1?"<button class=\"btn sm\" data-cl=\"2\">استلم 40</button>":"<span>🔒</span>")+"</li></ul>","إغلاق")};
+$("rms").onclick=function(){S.emit("rooms")};
+S.on("rooms",function(l){modal(null,"الغرف العامة","<ul>"+(l.length?l.map(function(x){return"<li><span>"+esc(x.host)+" · "+x.n+"/10</span><button class=\"btn sm\" data-jr=\""+esc(x.code)+"\">ادخل</button></li>"}).join(""):"<li>ما في غرف عامة هلأ</li>")+"</ul>","إغلاق")});
+$("how").onclick=function(){modal(null,"كيف تلعب","<p style=\"text-align:right\">بالليل المافيا بتقتل واحد، وبالنهار الكل بيناقش ويصوّت على مين ينطرد. المواطنين بيفوزوا لما تنطرد كل المافيا، والمافيا بتفوز لما يصير عددها مثل عدد الباقين أو أكثر.</p><ul class=\"rl\">"+Object.keys(RN).map(function(k){return"<li><img class=\"th\" src=\"/img/"+k+".jpg\" alt=\"\"><span><b>"+RN[k]+"</b><br><small>"+DESC[k]+"</small></span></li>"}).join("")+"</ul>","فهمت")};
+var INV=(new URLSearchParams(location.search).get("room")||"").toUpperCase().slice(0,4);
+if(INV){$("invb").hidden=false;$("invc").textContent=INV;$("code").value=INV;try{history.replaceState(null,"","/")}catch(e){}}
+$("inv").onclick=function(){if(!st)return;var url=location.origin+"/?room="+st.code,txt="تعال نلعب مافيا! ادخل الغرفة "+st.code+": "+url;
+ if(navigator.share)navigator.share({text:txt}).catch(function(){});else window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank")};
+function resetGame(){if(VON)micToggle();st=null;key="";p1=null;sent="";seenRole=false;seenEnd=false;shot=false;spoken=-1;
+ if(window.speechSynthesis)speechSynthesis.cancel();bq=0;$("modal").hidden=true;$("nt").textContent="";$("g").hidden=true;$("j").hidden=false;
+ document.documentElement.removeAttribute("data-mode");document.body.classList.add("home")}
+$("lv").onclick=function(){if(st&&st.phase!=="lobby"&&st.phase!=="over"&&!confirm("اللعبة شغّالة. بدك تطلع من الغرفة؟ البوت رح يكمّل مكانك."))return;S.emit("leave")};
+S.on("left",resetGame);
+document.body.classList.add("home");
 setInterval(function(){if(st&&st.deadline&&st.phase!=="over"&&st.phase!=="lobby")$("tm").textContent=Math.max(0,Math.ceil((st.deadline-Date.now())/1000))+"ث";else $("tm").textContent=""},500);
 </script>
 </body>
