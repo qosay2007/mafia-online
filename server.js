@@ -1,10 +1,42 @@
 const http=require("http"),express=require("express"),{Server}=require("socket.io");
 const app=express();app.get("/",(q,s)=>s.sendFile(__dirname+"/index.html"));
+app.use(express.json({limit:"10kb"}));
+app.get("/:f",(q,s,next)=>/^icon-(192|512)\.png$/.test(q.params.f)?s.sendFile(__dirname+"/"+q.params.f):next());
+app.get("/manifest.json",(q,s)=>s.json({name:"مافيا",short_name:"مافيا",start_url:"/",display:"standalone",background_color:"#0b1020",theme_color:"#0b1020",lang:"ar",dir:"rtl",icons:[{src:"/icon-192.png",sizes:"192x192",type:"image/png"},{src:"/icon-512.png",sizes:"512x512",type:"image/png"}]}));
+app.get("/ice",(q,s)=>{const l=[{urls:"stun:stun.l.google.com:19302"}];if(process.env.TURN_URL)l.push({urls:process.env.TURN_URL.split(","),username:process.env.TURN_USER,credential:process.env.TURN_PASS});s.json(l)});
+const PAGE=(t,b)=>`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${t}</title><style>body{background:#0b1020;color:#f3ead8;font-family:system-ui,sans-serif;line-height:1.8;max-width:640px;margin:0 auto;padding:20px}h1,h2{color:#f1d38a}a{color:#f1d38a}input,button{font:inherit;padding:8px;margin:4px}table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #3a2c22;padding:6px;text-align:right}</style></head><body>${b}</body></html>`;
+app.get("/privacy",(q,s)=>s.send(PAGE("الخصوصية والشروط",`<h1>الخصوصية والشروط</h1>
+<h2>البيانات اللي بنحفظها</h2><p>اسم المستخدم، وكلمة السر مشفّرة (ما بنقدر نشوفها)، وإحصائيات اللعب والعملات والأغراض اللي اشتريتها. رسائل الشات بتظهر لأعضاء الغرفة فقط وما بنحفظها بعد انتهاء الغرفة.</p>
+<h2>المحادثة الصوتية</h2><p>الصوت بيتنقل مباشرة بين اللاعبين ولا بنسجّله ولا بنحفظه على السيرفر. المايك ما بيشتغل إلا إذا ضغطت عليه.</p>
+<h2>قواعد اللعب</h2><p>ممنوع الإساءة والتحرش والكراهية والغش. ممكن نكتم أو نحظر أي حساب بيخالف القواعد.</p>
+<h2>المتجر والعملات</h2><p>الأغراض شكلية فقط وما بتعطي أي أفضلية باللعب.</p>
+<h2>حذف الحساب</h2><p>تواصل مع إدارة الموقع لحذف حسابك وبياناتك.</p>
+<p><a href="/">رجوع للعبة</a></p>`)));
+const adm=k=>process.env.ADMIN_KEY&&process.env.ADMIN_KEY.length>=8&&k===process.env.ADMIN_KEY;
+app.get("/admin",(q,s)=>s.send(PAGE("إدارة",`<h1>إدارة مافيا</h1><input id="k" type="password" placeholder="مفتاح الإدارة"><button id="ld">عرض اللاعبين</button><div id="o"></div>
+<script>
+var K="";function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function load(){K=document.getElementById("k").value;fetch("/admin/users?key="+encodeURIComponent(K)).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(l){
+document.getElementById("o").innerHTML="<table><tr><th>الاسم</th><th>م</th><th>فوز</th><th>عملات</th><th></th></tr>"+l.map(function(u){return"<tr><td>"+esc(u.name)+(u.banned?" (محظور)":"")+"</td><td>"+(Math.floor(u.xp/100)+1)+"</td><td>"+u.wins+"</td><td>"+u.coins+"</td><td><button data-n=\""+esc(u.name)+"\" data-b=\""+(u.banned?0:1)+"\">"+(u.banned?"فك الحظر":"حظر")+"</button></td></tr>"}).join("")+"</table>"}).catch(function(){document.getElementById("o").textContent="مفتاح غلط أو الإدارة غير مفعّلة."})}
+document.getElementById("ld").onclick=load;
+document.getElementById("o").onclick=function(e){var b=e.target.closest("button");if(!b)return;fetch("/admin/ban",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key:K,name:b.dataset.n,ban:b.dataset.b==="1"})}).then(load)};
+</script>`)));
+app.get("/admin/users",(q,s)=>adm(q.query.key)?s.json(Object.values(db.users).map(x=>({name:x.name,xp:x.xp,wins:x.wins,coins:x.coins,banned:!!x.banned}))):s.sendStatus(403));
+app.post("/admin/ban",(q,s)=>{const b=q.body||{};if(!adm(b.key))return s.sendStatus(403);
+ const k=String(b.name||"").toLowerCase(),x=db.users[k];if(!x)return s.sendStatus(404);
+ x.banned=!!b.ban;if(x.banned)for(const t in db.tokens)if(db.tokens[t]===k)delete db.tokens[t];save();s.json({ok:1})});
 app.get("/img/:n",(q,s)=>/^[a-z]+\.jpg$/.test(q.params.n)?s.sendFile(__dirname+"/"+q.params.n):s.sendStatus(404));
 const srv=http.createServer(app),io=new Server(srv);
 const crypto=require("crypto"),fs=require("fs"),DB=(process.env.DATA_DIR||__dirname)+"/data.json";
 let db={users:{},tokens:{}},dirty=false;try{db=JSON.parse(fs.readFileSync(DB,"utf8"))}catch(e){}
-const save=()=>{dirty=true};setInterval(()=>{if(dirty){dirty=false;fs.writeFile(DB,JSON.stringify(db),()=>{})}},5000);
+const save=()=>{dirty=true};
+const SB=process.env.SUPABASE_URL,SK=process.env.SUPABASE_KEY,SH={apikey:SK,Authorization:"Bearer "+SK,"Content-Type":"application/json"};
+async function sbLoad(){const r=await fetch(SB+"/rest/v1/kv?key=eq.db&select=value",{headers:SH});if(!r.ok)throw new Error("supabase load failed: "+r.status);const j=await r.json();if(j[0])db=j[0].value}
+async function persist(){try{
+ if(SB&&SK){const r=await fetch(SB+"/rest/v1/kv",{method:"POST",headers:{...SH,Prefer:"resolution=merge-duplicates"},body:JSON.stringify({key:"db",value:db})});if(!r.ok)dirty=true}
+ else fs.writeFile(DB,JSON.stringify(db),()=>{})}catch(e){dirty=true}}
+setInterval(()=>{if(dirty){dirty=false;persist()}},5000);
+process.on("SIGTERM",async()=>{if(dirty)await persist();process.exit(0)});
 const hash=(p,s)=>crypto.scryptSync(p,s,32).toString("hex");
 const SHOP={f_gold:{t:"frame",n:"إطار ذهبي",c:150,v:"#d4a84b"},f_ruby:{t:"frame",n:"إطار ياقوتي",c:200,v:"#c2203b"},f_emerald:{t:"frame",n:"إطار زمردي",c:200,v:"#2fae6a"},f_night:{t:"frame",n:"إطار الليل",c:300,v:"#7a8cff"},n_gold:{t:"color",n:"اسم ذهبي",c:100,v:"#f1d38a"},n_red:{t:"color",n:"اسم أحمر",c:100,v:"#ff6b6b"},n_cyan:{t:"color",n:"اسم سماوي",c:100,v:"#6be3ff"}};
 const prof=x=>({name:x.name,coins:x.coins,xp:x.xp,lv:Math.floor(x.xp/100)+1,wins:x.wins,games:x.games,items:x.items,eq:x.eq});
@@ -24,7 +56,7 @@ const team=p=>p.role==="mafia"?"m":"c";
 const alive=r=>r.players.filter(p=>p.alive);
 const humans=r=>r.players.filter(p=>!p.bot);
 function view(r,me){return{code:r.code,phase:r.phase,day:r.day,deadline:r.deadline,host:r.host===me.id,you:me.id,winner:r.winner,
- players:r.players.map(q=>({id:q.id,name:q.name,alive:q.alive,bot:!!q.bot,lv:lvl(q),fr:cos(q,"frame"),nc:cos(q,"color"),role:(r.phase==="over"||!q.alive||q===me||(me.role==="mafia"&&q.role==="mafia"))?q.role:null})),log:r.log.slice(-60),mlog:me.role==="mafia"?r.mlog.slice(-30):[],gain:me.gain||0}}
+ players:r.players.map(q=>({id:q.id,name:q.name,alive:q.alive,bot:!!q.bot,lv:lvl(q),fr:cos(q,"frame"),nc:cos(q,"color"),role:(r.phase==="over"||!q.alive||q===me||(me.role==="mafia"&&q.role==="mafia"))?q.role:null})),log:r.log.slice(-60),n:r.log.length,mlog:me.role==="mafia"?r.mlog.slice(-30):[],gain:me.gain||0}}
 function push(r){humans(r).forEach(p=>io.to(p.id).emit("state",view(r,p)))}
 function say(r,t,who){r.log.push({who:who||"",t})}
 function note(p,t){if(!p.bot)io.to(p.id).emit("note",t)}
@@ -98,7 +130,7 @@ function drop(r){clearTimeout(r.timer);delete rooms[r.code]}
 io.on("connection",s=>{
  let r=null,me=null,u=null,fails=0;
  s.on("join",d=>{
-  if(r)return;d=d||{};const name=String(d.name||"لاعب").trim().slice(0,14)||"لاعب";
+  if(r)return;d=d||{};if(u&&db.users[u]&&db.users[u].banned)return s.emit("err","هذا الحساب محظور.");const name=String(d.name||"لاعب").trim().slice(0,14)||"لاعب";
   if(d.room){r=rooms[String(d.room).toUpperCase()];
    if(!r||r.phase!=="lobby"){r=null;return s.emit("err","الغرفة مش موجودة أو اللعبة بدأت.")}}
   else{let c;do{c=Math.random().toString(36).slice(2,6).toUpperCase()}while(rooms[c]);
@@ -126,9 +158,9 @@ io.on("connection",s=>{
    if(db.users[k]||clean(name)!==name)return s.emit("err","الاسم مستخدم أو غير مسموح.");
    const salt=crypto.randomBytes(8).toString("hex");
    db.users[k]={name,salt,hash:hash(pw,salt),coins:50,xp:0,wins:0,games:0,items:[],eq:{}};
-  }else{const x=db.users[k];if(!x||x.hash!==hash(pw,x.salt)){fails++;return s.emit("err","اسم أو كلمة سر غلط.")}}
+  }else{const x=db.users[k];if(!x||x.hash!==hash(pw,x.salt)){fails++;return s.emit("err","اسم أو كلمة سر غلط.")}if(x.banned)return s.emit("err","هذا الحساب محظور.")}
   u=k;s.emit("authed",{token:tok(k),profile:prof(db.users[k])})});
- s.on("resume",t=>{const k=db.tokens[String(t)];if(k&&db.users[k]){u=k;s.emit("authed",{token:String(t),profile:prof(db.users[k])})}else s.emit("authfail")});
+ s.on("resume",t=>{const k=db.tokens[String(t)];if(k&&db.users[k]&&!db.users[k].banned){u=k;s.emit("authed",{token:String(t),profile:prof(db.users[k])})}else s.emit("authfail")});
  s.on("logout",t=>{delete db.tokens[String(t)];u=null;save()});
  s.on("shop",shopMsg);
  s.on("buy",id=>{const it=SHOP[id],us=u&&db.users[u];
@@ -147,6 +179,8 @@ io.on("connection",s=>{
  s.on("rejoin",cid=>{if(r||!cid)return;cid=String(cid);
   for(const k in rooms){const q=rooms[k],p=q.players.find(x=>x.cid===cid&&x.left);
    if(p){r=q;me=p;if(q.host===p.id)q.host=s.id;p.id=s.id;p.bot=false;p.left=false;s.join(q.code);say(q,p.name+" رجع للعبة.");push(q);return}}});
+ s.on("rtc",d=>{if(!r||!me||!d||typeof d.to!=="string")return;
+  const t=r.players.find(p=>p.id===d.to&&!p.bot);if(t)io.to(t.id).emit("rtc",{from:s.id,data:d.data})});
  s.on("disconnect",()=>{
   if(!r||!me)return;
   if(r.phase==="lobby"||r.phase==="over"){r.players=r.players.filter(p=>p!==me)}else{me.bot=true;me.left=true}
@@ -154,4 +188,7 @@ io.on("connection",s=>{
   if(r.host===s.id)r.host=humans(r)[0].id;
   say(r,me.name+" خرج.");push(r)});
 });
-srv.listen(process.env.PORT||3000,()=>console.log("Mafia server on",process.env.PORT||3000));
+(async()=>{
+ if(SB&&SK){try{await sbLoad();console.log("storage: supabase")}catch(e){console.log(e.message);process.exit(1)}}
+ srv.listen(process.env.PORT||3000,()=>console.log("Mafia server on",process.env.PORT||3000));
+})();
