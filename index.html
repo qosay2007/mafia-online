@@ -117,7 +117,7 @@ body.home{background:linear-gradient(rgba(11,16,32,.8),rgba(10,7,6,.96)),url(/im
    <button class="btn alt" id="jn" type="button" style="width:100%">ادخل الغرفة</button>
    <button class="btn alt sm" id="rms" type="button" style="width:100%;margin-top:10px">الغرف العامة</button>
   </div>
-  <div class="row2"><button class="btn alt sm" id="how" type="button">كيف تلعب</button></div>
+  <div class="row2"><button class="btn alt sm" id="how" type="button">كيف تلعب</button><button class="btn alt sm" id="tst" type="button">🔊 اختبار الصوت</button></div>
   <p class="hint" style="text-align:center"><a href="/privacy" style="color:var(--gold2)">الخصوصية والشروط</a></p>
  </section>
  <section id="g" hidden>
@@ -167,16 +167,17 @@ $("go1").onclick=function(){var n=$("u").value.trim(),p=$("pw").value;
 $("pw").onkeydown=function(e){if(e.key==="Enter")$("go1").onclick()};
 function showAcct(){$("auth").hidden=!!prof;$("acct").hidden=!prof;
  if(prof){$("pav").textContent=prof.av?"":prof.name[0];$("pav").style.backgroundImage=prof.av?"url(/img/"+prof.av+".jpg)":"none";$("dlb").hidden=!(prof.dr&&prof.dr.can);$("pn").textContent=prof.name;$("ps").textContent="مستوى "+prof.lv+" · "+prof.coins+" عملة · "+prof.wins+" فوز من "+prof.games+" لعبة";$("xb").style.width=(prof.xp%100)+"%"}}
-var ARS=[],BV=ls("bvoice")!=="0",bq=0,VOICE=ls("voice")!=="0",AR=null,spoken=-1,unlocked=false,warned=false;
+var UQ=[],ARS=[],BV=ls("bvoice")!=="0",bq=0,VOICE=ls("voice")!=="0",AR=null,spoken=-1,unlocked=false,warned=false;
 function pickVoice(){var v=window.speechSynthesis?speechSynthesis.getVoices():[];ARS=v.filter(function(x){return/^ar/i.test(x.lang)});AR=ARS[0]||null}
 if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
-function speak(t){if(!VOICE||!window.speechSynthesis)return;var u=new SpeechSynthesisUtterance(t);u.lang="ar-SA";if(AR)u.voice=AR;u.rate=.95;speechSynthesis.speak(u)}
-document.addEventListener("pointerdown",function(){if(unlocked||!window.speechSynthesis)return;unlocked=true;speechSynthesis.speak(new SpeechSynthesisUtterance(" "))},{once:true});
+function speak(t){if(!VOICE||!window.speechSynthesis)return;if(!ARS.length)pickVoice();var u=new SpeechSynthesisUtterance(t);u.lang="ar-SA";if(AR)u.voice=AR;u.rate=.95;UQ.push(u);if(UQ.length>12)UQ.shift();try{speechSynthesis.resume()}catch(e){}speechSynthesis.speak(u)}
+function unlock(){if(unlocked||!window.speechSynthesis)return;unlocked=true;var u=new SpeechSynthesisUtterance("");u.volume=0;u.lang="ar-SA";UQ.push(u);speechSynthesis.speak(u)}
+["click","touchend"].forEach(function(e){document.addEventListener(e,unlock,{capture:true})});
 function showVoice(){$("vb").textContent=VOICE?"🔊":"🔇";$("bvb").className="vb"+(BV?" on":"")}showVoice();
 function hsh(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h}
 function speakBot(name,t){if(!BV||!window.speechSynthesis||bq>1)return;var h=hsh(name),u=new SpeechSynthesisUtterance(t);u.lang="ar-SA";
  if(ARS.length)u.voice=ARS[h%ARS.length];u.pitch=.75+(h%7)*.09;u.rate=.88+((h>>3)%5)*.07;
- u.onend=u.onerror=function(){bq=Math.max(0,bq-1)};bq++;speechSynthesis.speak(u)}
+ u.onend=u.onerror=function(){bq=Math.max(0,bq-1)};bq++;UQ.push(u);if(UQ.length>12)UQ.shift();try{speechSynthesis.resume()}catch(e){}speechSynthesis.speak(u)}
 $("bvb").onclick=function(){BV=!BV;ls("bvoice",BV?"1":"0");showVoice();if(!BV&&window.speechSynthesis){speechSynthesis.cancel();bq=0}else if(!AR)toast("ما لقيت صوت عربي بجهازك. فعّله من الإعدادات > إمكانية الوصول > المحتوى المنطوق > الأصوات.")};
 $("vb").onclick=function(){VOICE=!VOICE;ls("voice",VOICE?"1":"0");showVoice();if(!VOICE&&window.speechSynthesis)speechSynthesis.cancel();else if(!AR)toast("ما لقيت صوت عربي بجهازك. فعّله من الإعدادات > إمكانية الوصول > المحتوى المنطوق > الأصوات.")};
 function narrate(){if(st.n<spoken)spoken=st.n;if(spoken<0){spoken=st.n;return}
@@ -303,6 +304,14 @@ S.on("msg",toast);
 $("dlb").onclick=function(){S.emit("daily")};
 $("pav").onclick=function(){modal(null,"اختر أفاتار","<div class=\"avs\">"+Object.keys(RN).map(function(k){return"<button class=\"avb\" data-av=\""+k+"\" style=\"background-image:url(/img/"+k+".jpg)\" aria-label=\""+RN[k]+"\"></button>"}).join("")+"</div>","إغلاق")};
 $("missb").onclick=function(){var m=prof.dm;modal(null,"المهام اليومية","<ul><li><span>العب 3 ألعاب ("+Math.min(m.g,3)+"/3)</span>"+(m.c1?"<span>✓</span>":m.g>=3?"<button class=\"btn sm\" data-cl=\"1\">استلم 25</button>":"<span>🔒</span>")+"</li><li><span>اربح لعبة ("+Math.min(m.w,1)+"/1)</span>"+(m.c2?"<span>✓</span>":m.w>=1?"<button class=\"btn sm\" data-cl=\"2\">استلم 40</button>":"<span>🔒</span>")+"</li></ul>","إغلاق")};
+$("tst").onclick=function(){var ss=window.speechSynthesis;
+ if(!ss)return modal(null,"اختبار الصوت","<p>متصفحك ما بيدعم النطق.</p>","إغلاق");
+ pickVoice();var log=[];
+ var u=new SpeechSynthesisUtterance("مرحباً، هذا اختبار الصوت العربي");u.lang="ar-SA";if(AR)u.voice=AR;UQ.push(u);
+ function show(){modal(null,"نتيجة اختبار الصوت","<ul class=\"rl\"><li>عدد الأصوات بالجهاز: "+ss.getVoices().length+"</li><li>الأصوات العربية: "+ARS.length+(ARS.length?" ("+ARS.map(function(v){return esc(v.name)}).join("، ")+")":"")+"</li><li>"+log.join(" | ")+"</li></ul><p>إذا ما سمعت شي، تأكد إن زر الصامت مطفي وإن الصوت مرفوع.</p>","إغلاق")}
+ u.onstart=function(){log.push("بدأ النطق ✓")};u.onend=function(){log.push("انتهى ✓");show()};u.onerror=function(e){log.push("خطأ: "+e.error);show()};
+ ss.cancel();try{ss.resume()}catch(e){}ss.speak(u);
+ setTimeout(function(){if(!log.length){log.push("ما بدأ النطق");show()}},3500)};
 $("rms").onclick=function(){S.emit("rooms")};
 S.on("rooms",function(l){modal(null,"الغرف العامة","<ul>"+(l.length?l.map(function(x){return"<li><span>"+esc(x.host)+" · "+x.n+"/10</span><button class=\"btn sm\" data-jr=\""+esc(x.code)+"\">ادخل</button></li>"}).join(""):"<li>ما في غرف عامة هلأ</li>")+"</ul>","إغلاق")});
 $("how").onclick=function(){modal(null,"كيف تلعب","<p style=\"text-align:right\">بالليل المافيا بتقتل واحد، وبالنهار الكل بيناقش ويصوّت على مين ينطرد. المواطنين بيفوزوا لما تنطرد كل المافيا، والمافيا بتفوز لما يصير عددها مثل عدد الباقين أو أكثر.</p><ul class=\"rl\">"+Object.keys(RN).map(function(k){return"<li><img class=\"th\" src=\"/img/"+k+".jpg\" alt=\"\"><span><b>"+RN[k]+"</b><br><small>"+DESC[k]+"</small></span></li>"}).join("")+"</ul>","فهمت")};
